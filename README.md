@@ -15,7 +15,7 @@
 
 
 ## Live Demo
-[https://midnight-waxing-crescent.vercel.app](https://midnight-waxing-crescent.vercel.app)  
+[https://midnight-level-2.vercel.app](https://midnight-level-2.vercel.app)  
 *(Deployable with zero configuration to Vercel or Netlify via included `vercel.json` and `netlify.toml`)*
 
 ---
