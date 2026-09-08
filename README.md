@@ -124,7 +124,7 @@ npx netlify deploy --prod --dir=dist
 ---
 
 ## Demo Video
-[Demo Video Link Placeholder — Watch Wallet Connect & Circuit Call](https://youtu.be/placeholder_waxing_crescent)
+[Demo Video — Watch Wallet Connect & Circuit Call](https://youtu.be/zUXMaqcQrw8)
 
 ### Demo Video Checklist (Under 2 minutes):
 1. **Connect Lace Wallet**: Click "Connect Lace Wallet", approve connection in the Lace popup, and demonstrate the connected Preprod address appearing on screen.
