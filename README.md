@@ -6,10 +6,10 @@
 ## Screenshots
 
 ### Wallet Connect UI — Lace on Midnight Preprod
-![Wallet Connect UI](screenshots/wallet_connect_ui.jpg)
+![Wallet Connect UI](screenshots/wallet_connect.png)
 
 ### Circuit Proving Flow — Zero-Knowledge Proof Execution
-![Circuit Proving Flow](screenshots/circuit_proving_flow.jpg)
+![Circuit Proving Flow](screenshots/Circuit_Proving_Flow.png)
 
 ---
 
