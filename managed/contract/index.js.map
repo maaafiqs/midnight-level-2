@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../",
+  "sources": ["contracts/ZkNumberGuesser.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAOA;;;;;;;;;;MAKA,AAAA,YAQC;;;;;cAR2B,OAAe;;;;;;;;;;;;;;;;;;yCAAf,OAAe;;;;;;;yEAAf,OAAe;;;OAQ1C;;;;GAVA;EAHD;;;;;;;;;;;;;;;;;;;;;;;;;;;IAHA;;;;;;;;;yEAAiC;IACjC;;;;;;;;;yEAAiC;IAG/B;;;;;;;;;yEAAS;UACT,KAAQ;IAAR;;;;;;;2HAAA,KAAQ;;yEAAA;;;;;;;GACT;EAED,AAAA,eAQC,4BAR2B,OAAe;UACnC,eAA4B;UAC5B,YAAmC,iBAAtB,OAAK,EAAI,eAAa;UACnC,mBAAwC,GAAX,YAAU;QACzC,mBAAiB;MACnB;;;;;;;;;2EAAS;;UAEX,KAAQ;;;;;6CAAI;;;;;;;;;;;kHAAQ;;;IAApB;;;;;;;2HAAA,KAAQ;;yEAAA;;GACT;;;;;;;;;;;;;;;;;;;;IAhBD;qCAAA;;;;;;;;;;;0GAAiC;KAAA;IACjC;qCAAA;;;;;;;;;;;0GAAiC;KAAA;;;;;;;;;;"
+}

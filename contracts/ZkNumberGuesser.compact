@@ -1,0 +1,21 @@
+pragma language_version >= 0.20.0;
+
+import CompactStandardLibrary;
+
+export ledger is_solved: Boolean;
+export ledger attempts: Uint<32>;
+
+constructor() {
+  is_solved = false;
+  attempts = 0;
+}
+
+export circuit guess_number(guess: Uint<32>): [] {
+  const secret_number: Uint<32> = 42;
+  const is_correct = guess == secret_number;
+  const public_is_correct = disclose(is_correct);
+  if (public_is_correct) {
+    is_solved = true;
+  }
+  attempts = (attempts + 1) as Uint<32>;
+}
