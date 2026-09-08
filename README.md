@@ -3,6 +3,17 @@
 
 ---
 
+## Screenshots
+
+### Wallet Connect UI — Lace on Midnight Preprod
+![Wallet Connect UI](screenshots/wallet_connect_ui.jpg)
+
+### Circuit Proving Flow — Zero-Knowledge Proof Execution
+![Circuit Proving Flow](screenshots/circuit_proving_flow.jpg)
+
+---
+
+
 ## Live Demo
 [https://midnight-waxing-crescent.vercel.app](https://midnight-waxing-crescent.vercel.app)  
 *(Deployable with zero configuration to Vercel or Netlify via included `vercel.json` and `netlify.toml`)*
