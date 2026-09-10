@@ -10,6 +10,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <!--
+      ES Module Import Map
+      Maps the bare specifier '@midnight-ntwrk/compact-runtime' (used by the
+      Compact-compiled contract binding in managed/contract/index.js) to a
+      browser-compatible shim served as a static asset.
+      The @midnight-ntwrk/compact-runtime package is not available on the public
+      npm registry — this shim provides the minimal runtime APIs needed to
+      load and introspect the compiled contract in the browser.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@midnight-ntwrk/compact-runtime": "/compact-runtime-shim.js"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
