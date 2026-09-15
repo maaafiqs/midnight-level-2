@@ -1,0 +1,20 @@
+{
+  "network": "preprod",
+  "contractName": "ZkNumberGuesser",
+  "contractAddress": "02005a7b8849b2f3e0981e4b98127390abef38192a74c09d81b7e4198274a102",
+  "deployedAt": "2026-09-15T23:10:34.791Z",
+  "endpoints": {
+    "indexerHttp": "https://indexer.preprod.midnight.network/api/v4/graphql",
+    "indexerWs": "wss://indexer.preprod.midnight.network/api/v4/graphql/ws"
+  },
+  "circuits": [
+    "guess_number(guess: Uint<32>)"
+  ],
+  "initialLedger": {
+    "is_solved": false,
+    "attempts": 0
+  },
+  "runtimeVersion": "0.16.0",
+  "protocol": "Midnight.js v4",
+  "deploymentMethod": "@midnight-ntwrk/midnight-js-contracts::deployContract()"
+}

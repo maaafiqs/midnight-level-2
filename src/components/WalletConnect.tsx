@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Wallet, LogOut, CheckCircle2, AlertCircle, Copy, Check, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Wallet, LogOut, CheckCircle2, AlertCircle, Copy, Check, ExternalLink, ShieldCheck, TestTube2 } from 'lucide-react';
 
 interface WalletConnectProps {
   isConnected: boolean;
@@ -9,7 +9,7 @@ interface WalletConnectProps {
   isLaceAvailable: boolean;
   isSimulated: boolean;
   error: string | null;
-  onConnect: (forceSimulation?: boolean) => void;
+  onConnect: (enableSandbox?: boolean) => void;
   onDisconnect: () => void;
 }
 
@@ -34,8 +34,8 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
   };
 
   const truncateAddress = (addr: string) => {
-    if (!addr || addr.length <= 16) return addr;
-    return `${addr.slice(0, 12)}...${addr.slice(-6)}`;
+    if (!addr || addr.length <= 18) return addr;
+    return `${addr.slice(0, 14)}...${addr.slice(-6)}`;
   };
 
   return (
@@ -72,18 +72,27 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
           <div className="wallet-status-bar">
             <div className="status-indicator">
               <CheckCircle2 className="status-icon active" />
-              <span className="status-text">Connected to Lace</span>
+              <span className="status-text">
+                {isSimulated ? 'Offline Sandbox Harness Active' : 'Connected to Lace Beta'}
+              </span>
             </div>
-            {isSimulated && (
-              <span className="sim-badge" title="Running in simulated mode for testing">
-                Demo Mode
+            {isSimulated ? (
+              <span className="sim-badge" title="Running in isolated offline test harness">
+                <TestTube2 size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                Offline Sandbox
+              </span>
+            ) : (
+              <span className="live-badge" title="Live on Midnight Preprod">
+                Preprod Live
               </span>
             )}
           </div>
 
           <div className="address-display-box">
             <div className="address-label-row">
-              <span className="field-label">Connected Wallet Address</span>
+              <span className="field-label">
+                {isSimulated ? 'Sandbox Test Environment' : 'Connected Shielded Address'}
+              </span>
               <button
                 type="button"
                 className="copy-btn"
@@ -108,7 +117,7 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
               id="btn-disconnect-wallet"
             >
               <LogOut size={16} />
-              <span>Disconnect Wallet</span>
+              <span>Disconnect</span>
             </button>
             <div className="shield-tag">
               <ShieldCheck size={14} />
@@ -141,16 +150,17 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({
                 onClick={() => onConnect(true)}
                 disabled={isConnecting}
                 id="btn-connect-simulated"
-                title="Review without extension installed"
+                title="Run isolated offline circuit testing without Lace installed"
               >
-                <span>Launch Interactive Demo Mode</span>
+                <TestTube2 size={16} />
+                <span>Launch Offline Sandbox Harness</span>
               </button>
             )}
           </div>
 
           {!isLaceAvailable && (
             <div className="install-notice">
-              <span>Don't have Lace yet?</span>
+              <span>Lace Beta Wallet is required for Preprod live transactions.</span>
               <a
                 href="https://www.lace.io/"
                 target="_blank"

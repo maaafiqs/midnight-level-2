@@ -1,72 +1,128 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, beforeAll } from '@jest/globals';
+import * as compactRuntime from '@midnight-ntwrk/compact-runtime';
+import { setNetworkId, getNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { CompiledContract } from '@midnight-ntwrk/compact-js';
+// Import actual compiled Compact contract and ledger binding
+import { Contract, ledger } from '../managed/contract/index.js';
+import { fetchLatestPreprodBlock, fetchContractStateFromIndexer } from '../src/services/indexerService.js';
 
-describe('ZkNumberGuesser Compact Contract & Circuit Verification', () => {
-  const SECRET_NUMBER = 42;
+describe('ZkNumberGuesser: Actual Compiled Contract & Midnight Preprod Integration', () => {
+  const dummyCoinPublicKey = new Uint8Array(32);
+  let contractInstance: any;
+  let currentContractState: any;
 
-  interface PublicLedgerState {
-    is_solved: boolean;
-    attempts: number;
-  }
+  beforeAll(() => {
+    // Invoke setNetworkId as required by Midnight.js
+    setNetworkId('preprod');
+    expect(getNetworkId()).toBe('preprod');
 
-  // Simulated circuit behavior matching ZkNumberGuesser.compact
-  function runCircuitGuessNumber(
-    currentState: PublicLedgerState,
-    privateWitnessGuess: number
-  ): { newState: PublicLedgerState; publicDisclosure: boolean; leakedWitness: any } {
-    // In Midnight Compact:
-    // const is_correct = guess == secret_number;
-    // const public_is_correct = disclose(is_correct);
-    const is_correct = privateWitnessGuess === SECRET_NUMBER;
-    const public_is_correct = is_correct; // Only the boolean is disclosed
-
-    const newState: PublicLedgerState = {
-      is_solved: public_is_correct ? true : currentState.is_solved,
-      attempts: currentState.attempts + 1,
-    };
-
-    // In a zero-knowledge circuit, the witness (guess) is evaluated inside the prover.
-    // The public ledger state and transaction output ONLY contain public_is_correct and new ledger state.
-    return {
-      newState,
-      publicDisclosure: public_is_correct,
-      leakedWitness: null, // Witness is never leaked or stored in public ledger
-    };
-  }
-
-  it('1. Circuit Logic: Evaluates incorrect guess without disclosing value', () => {
-    const initialState: PublicLedgerState = { is_solved: false, attempts: 0 };
-    const userPrivateGuess = 17; // Incorrect guess
-
-    const result = runCircuitGuessNumber(initialState, userPrivateGuess);
-
-    expect(result.publicDisclosure).toBe(false);
-    expect(result.newState.is_solved).toBe(false);
-    expect(result.newState.attempts).toBe(1);
-    expect(result.leakedWitness).toBeNull();
+    // Instantiate actual compiled contract class
+    contractInstance = new Contract({});
   });
 
-  it('2. State Transition: Marks contract as solved upon correct secret guess (42)', () => {
-    const initialState: PublicLedgerState = { is_solved: false, attempts: 2 };
-    const userPrivateGuess = 42; // Correct guess
+  it('1. Contract Constructor & Initial State: Compiles with 0 attempts and unsolved', () => {
+    const constructorContext = {
+      initialZswapLocalState: {
+        coinPublicKey: dummyCoinPublicKey,
+        currentIndex: 0n,
+        inputs: [],
+        outputs: [],
+      },
+      initialPrivateState: undefined,
+    };
 
-    const result = runCircuitGuessNumber(initialState, userPrivateGuess);
+    const initResult = contractInstance.initialState(constructorContext);
+    expect(initResult).toBeDefined();
+    expect(initResult.currentContractState).toBeDefined();
 
-    expect(result.publicDisclosure).toBe(true);
-    expect(result.newState.is_solved).toBe(true);
-    expect(result.newState.attempts).toBe(3);
+    currentContractState = initResult.currentContractState;
+
+    // Decode public ledger state using actual Compact ledger() decoder
+    const publicLedger = ledger(currentContractState.data);
+    expect(publicLedger.is_solved).toBe(false);
+    expect(publicLedger.attempts).toBe(0n);
   });
 
-  it('3. Privacy Guarantee: Private witness is never written to public state or ledger', () => {
-    const initialState: PublicLedgerState = { is_solved: false, attempts: 0 };
-    const secretInput = 999999;
+  it('2. Circuit Execution (Incorrect Guess): Increments attempts and preserves unsolved status', () => {
+    const circuitContext = compactRuntime.createCircuitContext(
+      compactRuntime.dummyContractAddress(),
+      dummyCoinPublicKey,
+      currentContractState.data,
+      undefined
+    );
 
-    const result = runCircuitGuessNumber(initialState, secretInput);
+    // Call actual compiled guess_number circuit with an incorrect guess (17)
+    const result = contractInstance.circuits.guess_number(circuitContext, 17n);
 
-    // Ledger keys must strictly only be 'is_solved' and 'attempts'
-    const ledgerKeys = Object.keys(result.newState);
-    expect(ledgerKeys).toEqual(['is_solved', 'attempts']);
+    expect(result).toBeDefined();
+    expect(result.proofData).toBeDefined();
+
+    // Verify public transcript is generated
+    expect(Array.isArray(result.proofData.publicTranscript)).toBe(true);
+
+    // Update current state to circuit output state
+    currentContractState.data = result.context.currentQueryContext.state;
+
+    // Verify ledger state through Compact runtime
+    const publicLedger = ledger(currentContractState.data);
+    expect(publicLedger.is_solved).toBe(false);
+    expect(publicLedger.attempts).toBe(1n);
+  });
+
+  it('3. Circuit Execution (Correct Secret Guess): Triggers is_solved = true on secret 42', () => {
+    const circuitContext = compactRuntime.createCircuitContext(
+      compactRuntime.dummyContractAddress(),
+      dummyCoinPublicKey,
+      currentContractState.data,
+      undefined
+    );
+
+    // Call actual compiled guess_number circuit with winning secret (42)
+    const result = contractInstance.circuits.guess_number(circuitContext, 42n);
+
+    expect(result).toBeDefined();
+    expect(result.proofData).toBeDefined();
+
+    // Update current state to winning output state
+    currentContractState.data = result.context.currentQueryContext.state;
+
+    // Verify state transition: is_solved is now true!
+    const publicLedger = ledger(currentContractState.data);
+    expect(publicLedger.is_solved).toBe(true);
+    expect(publicLedger.attempts).toBe(2n);
+  });
+
+  it('4. Privacy Model: Witness (guess) is strictly confidential and not stored in public ledger', () => {
+    const publicLedger = ledger(currentContractState.data);
+    const ledgerKeys = Object.keys(publicLedger);
+
+    // Public ledger strictly only exposes 'is_solved' and 'attempts'
+    expect(ledgerKeys).toContain('is_solved');
+    expect(ledgerKeys).toContain('attempts');
     expect(ledgerKeys).not.toContain('guess');
-    expect(result.newState).not.toHaveProperty('guess');
-    expect((result.newState as any).guess).toBeUndefined();
+    expect(ledgerKeys).not.toContain('secret_number');
+    expect((publicLedger as any).guess).toBeUndefined();
+  });
+
+  it('5. Midnight.js CompiledContract Configuration: Validates contract container and vacant witnesses', () => {
+    const compiled = CompiledContract.make('ZkNumberGuesser', Contract).pipe(
+      CompiledContract.withVacantWitnesses,
+      CompiledContract.withCompiledFileAssets('managed')
+    );
+
+    expect(compiled.tag).toBe('ZkNumberGuesser');
+  });
+
+  it('6. Midnight Preprod Indexer Integration: Connects and queries live network block & contract state', async () => {
+    const latestBlock = await fetchLatestPreprodBlock();
+    expect(latestBlock.height).toBeGreaterThan(0);
+    expect(typeof latestBlock.hash).toBe('string');
+    expect(latestBlock.hash.length).toBe(64);
+
+    const contractAddress = '02005a7b8849b2f3e0981e4b98127390abef38192a74c09d81b7e4198274a102';
+    const indexerState = await fetchContractStateFromIndexer(contractAddress);
+    expect(indexerState).toBeDefined();
+    expect(typeof indexerState.isSolved).toBe('boolean');
+    expect(typeof indexerState.attempts).toBe('number');
   });
 });

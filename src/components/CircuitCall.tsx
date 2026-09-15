@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, EyeOff, Loader2, CheckCircle, HelpCircle, Lock, RotateCcw, ArrowRight } from 'lucide-react';
+import { Sparkles, EyeOff, Loader2, CheckCircle, HelpCircle, Lock, RotateCcw, ArrowRight, RefreshCw, Radio } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { TransactionRecord } from '../hooks/useMidnight';
 
@@ -13,6 +13,10 @@ interface CircuitCallProps {
   isProving: boolean;
   provingStep: string;
   lastTxResult: TransactionRecord | null;
+  isIndexerSynced?: boolean;
+  isSyncingIndexer?: boolean;
+  lastSyncedTime?: string;
+  onSyncIndexer?: () => Promise<void>;
   onCallCircuit: (guess: number) => Promise<{ success: boolean; isSolved: boolean; txHash: string; error?: string }>;
   onReset: () => void;
 }
@@ -24,6 +28,10 @@ export const CircuitCall: React.FC<CircuitCallProps> = ({
   isProving,
   provingStep,
   lastTxResult,
+  isIndexerSynced,
+  isSyncingIndexer,
+  lastSyncedTime,
+  onSyncIndexer,
   onCallCircuit,
   onReset,
 }) => {
@@ -81,10 +89,62 @@ export const CircuitCall: React.FC<CircuitCallProps> = ({
         </div>
       </div>
 
+      {/* Indexer Synchronization Banner */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px 16px',
+        backgroundColor: 'rgba(56, 189, 248, 0.08)',
+        borderRadius: '10px',
+        border: '1px solid rgba(56, 189, 248, 0.2)',
+        marginBottom: '16px',
+        fontSize: '12px',
+        color: '#94a3b8'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Radio size={14} className={isSyncingIndexer ? 'spin highlight-icon' : ''} style={{ color: '#38bdf8' }} />
+          <span>
+            {isSyncingIndexer
+              ? 'Syncing state with Midnight Preprod Indexer...'
+              : isIndexerSynced
+              ? 'Synchronized with Midnight Preprod Indexer (GraphQL v4)'
+              : 'Preprod Indexer Standby (GraphQL v4)'}
+          </span>
+          {lastSyncedTime && (
+            <span style={{ opacity: 0.7 }}>· {lastSyncedTime}</span>
+          )}
+        </div>
+
+        {onSyncIndexer && (
+          <button
+            type="button"
+            onClick={() => onSyncIndexer()}
+            disabled={isSyncingIndexer}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#38bdf8',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '12px',
+              padding: '2px 8px',
+              borderRadius: '4px'
+            }}
+            title="Fetch latest on-chain state from indexer"
+          >
+            <RefreshCw size={12} className={isSyncingIndexer ? 'spin' : ''} />
+            <span>Sync Indexer</span>
+          </button>
+        )}
+      </div>
+
       {/* Contract State & Info */}
       <div className="contract-overview-panel">
         <div className="state-stat-box">
-          <span className="stat-label">Public Ledger State: Solved</span>
+          <span className="stat-label">On-Chain State: is_solved</span>
           <div className="stat-value-row">
             <span className={`status-pill ${contractState.isSolved ? 'solved' : 'unsolved'}`}>
               {contractState.isSolved ? 'SOLVED' : 'UNSOLVED'}
@@ -93,14 +153,14 @@ export const CircuitCall: React.FC<CircuitCallProps> = ({
         </div>
 
         <div className="state-stat-box">
-          <span className="stat-label">Total Verifiable Attempts</span>
+          <span className="stat-label">On-Chain State: attempts</span>
           <div className="stat-value-row">
             <span className="attempts-count">{contractState.attempts}</span>
           </div>
         </div>
 
         <div className="state-stat-box full-span">
-          <span className="stat-label">Preprod Contract Address</span>
+          <span className="stat-label">Preprod Contract Address (Midnight.js)</span>
           <div className="contract-addr-row">
             <code className="contract-addr-code">{contractAddress}</code>
             <a
@@ -121,7 +181,7 @@ export const CircuitCall: React.FC<CircuitCallProps> = ({
         <div className="input-group">
           <label htmlFor="input-secret-guess" className="input-label">
             <Lock size={14} className="lock-icon" />
-            <span>Private Witness Value (Input evaluated only inside prover)</span>
+            <span>Private Witness Value (Evaluated exclusively inside zero-knowledge prover)</span>
           </label>
           <div className="input-row">
             <input
@@ -225,7 +285,9 @@ export const CircuitCall: React.FC<CircuitCallProps> = ({
         {lastTxResult && (
           <div className="latest-tx-summary">
             <div className="tx-summary-header">
-              <span className="summary-title">Latest Verified Transaction</span>
+              <span className="summary-title">
+                {lastTxResult.isSandbox ? 'Sandbox Evaluation Result' : 'Latest Verified Transaction'}
+              </span>
               <span className="summary-block">Block #{lastTxResult.blockHeight}</span>
             </div>
             <div className="tx-summary-details">

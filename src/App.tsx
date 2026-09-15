@@ -22,10 +22,14 @@ export const App: React.FC = () => {
     provingStep,
     lastTxResult,
     txHistory,
+    isIndexerSynced,
+    isSyncingIndexer,
+    lastSyncedTime,
     connectWallet,
     disconnectWallet,
     callGuessCircuit,
     resetContractState,
+    syncWithIndexer,
   } = useMidnight();
 
   return (
@@ -85,6 +89,10 @@ export const App: React.FC = () => {
             isProving={isProving}
             provingStep={provingStep}
             lastTxResult={lastTxResult}
+            isIndexerSynced={isIndexerSynced}
+            isSyncingIndexer={isSyncingIndexer}
+            lastSyncedTime={lastSyncedTime}
+            onSyncIndexer={syncWithIndexer}
             onCallCircuit={callGuessCircuit}
             onReset={resetContractState}
           />
